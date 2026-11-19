@@ -1,0 +1,40 @@
+services:
+  auth-db:
+    image: postgres:15-alpine
+    container_name: auth-db
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    networks:
+      - campushub-net
+
+  auth-service:
+    build: .
+    container_name: auth-container
+    ports:
+      - "8002:8002"
+    environment:
+      SERVER_PORT: 8002
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: CampusHubSuperSecretKeyForJwtAuthentication2026MustBeLongEnough
+      JWT_EXPIRATION: 86400000
+    depends_on:
+      - auth-db
+    networks:
+      - campushub-net
+
+volumes:
+  auth_db_data:
+
+networks:
+  campushub-net:
+    driver: bridge
